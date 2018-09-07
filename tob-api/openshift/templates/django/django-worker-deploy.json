@@ -4,95 +4,12 @@
   "metadata": {
     "name": "${NAME}-deployment-template",
     "annotations": {
-      "description": "Deployment template for a django server connected to a PostGreSQL database.",
+      "description": "Deployment template for a django worker node connected to a PostGreSQL database.",
       "tags": "django",
       "iconClass": "icon-python"
     }
   },
   "objects": [
-    {
-      "kind": "Secret",
-      "apiVersion": "v1",
-      "metadata": {
-        "name": "${NAME}",
-        "labels": {
-          "app": "${NAME}"
-        }
-      },
-      "data": {
-        "api-user": "${USER_ID}",
-        "api-password": "${USER_PASSWORD}",
-        "admin-user": "${ADMIN_USER_ID}",
-        "admin-password": "${ADMIN_PASSWORD}"
-      },
-      "type": "Opaque"
-    },
-    {
-      "kind": "Service",
-      "apiVersion": "v1",
-      "metadata": {
-        "name": "${NAME}",
-        "annotations": {
-          "description": "Exposes and load balances the application pods",
-          "service.alpha.openshift.io/dependencies": "[{\"name\": \"${DATABASE_SERVICE_NAME}\", \"kind\": \"Service\"},{\"name\": \"${SOLR_SERVICE_NAME}\", \"kind\": \"Service\"}]"
-        }
-      },
-      "spec": {
-        "ports": [
-          {
-            "name": "8080-tcp",
-            "port": 8080,
-            "targetPort": 8080
-          }
-        ],
-        "selector": {
-          "name": "${NAME}"
-        }
-      }
-    },
-    {
-      "kind": "Route",
-      "apiVersion": "v1",
-      "metadata": {
-        "name": "${NAME}"
-      },
-      "spec": {
-        "host": "${APPLICATION_DOMAIN}",
-        "port": {
-          "targetPort": "8080-tcp"
-        },
-        "tls": {
-          "insecureEdgeTerminationPolicy": "Redirect",
-          "termination": "edge"
-        },
-        "to": {
-          "kind": "Service",
-          "name": "${NAME}",
-          "weight": 100
-        }
-      }
-    },
-    {
-      "kind": "PersistentVolumeClaim",
-      "apiVersion": "v1",
-      "metadata": {
-        "name": "${NAME}",
-        "labels": {
-          "app": "${NAME}",
-          "template": "${NAME}-deployment-template"
-        }
-      },
-      "spec": {
-        "accessModes": [
-          "ReadWriteOnce"
-        ],
-        "resources": {
-          "requests": {
-            "storage": "${PERSISTENT_VOLUME_SIZE}"
-          }
-        }
-      }
-    },
     {
       "kind": "DeploymentConfig",
       "apiVersion": "v1",
@@ -137,14 +54,6 @@
             }
           },
           "spec": {
-            "volumes": [
-              {
-                "name": "${NAME}-data",
-                "persistentVolumeClaim": {
-                  "claimName": "${NAME}"
-                }
-              }
-            ],
             "containers": [
               {
                 "name": "${NAME}",
@@ -175,12 +84,6 @@
                     "port": 8080
                   }
                 },
-                "volumeMounts": [
-                  {
-                    "name": "${NAME}-data",
-                    "mountPath": "${MOUNT_PATH}"
-                  }
-                ],
                 "env": [
                   {
                     "name": "DATABASE_SERVICE_NAME",
@@ -213,10 +116,6 @@
                     }
                   },
                   {
-                    "name": "APP_CONFIG",
-                    "value": "${APP_CONFIG}"
-                  },
-                  {
                     "name": "DJANGO_SECRET_KEY",
                     "value": "${DJANGO_SECRET_KEY}"
                   },
@@ -231,58 +130,6 @@
                   {
                     "name": "SOLR_CORE_NAME",
                     "value": "${SOLR_CORE_NAME}"
-                  },
-                  {
-                    "name": "INDY_WALLET_SEED",
-                    "value": "${INDY_WALLET_SEED}"
-                  },
-                  {
-                    "name": "LEDGER_URL",
-                    "value": "${LEDGER_URL}"
-                  },
-                  {
-                    "name": "INDY_WALLET_TYPE",
-                    "value": "${INDY_WALLET_TYPE}"
-                  },
-                  {
-                    "name": "USE_AUTHENTICATION",
-                    "value": "${USE_AUTHENTICATION}"
-                  },
-                  {
-                    "name": "USER_ID",
-                    "valueFrom": {
-                      "secretKeyRef": {
-                        "name": "${NAME}",
-                        "key": "api-user"
-                      }
-                    }
-                  },
-                  {
-                    "name": "USER_PASSWORD",
-                    "valueFrom": {
-                      "secretKeyRef": {
-                        "name": "${NAME}",
-                        "key": "api-password"
-                      }
-                    }
-                  },
-                  {
-                    "name": "ADMIN_USER_ID",
-                    "valueFrom": {
-                      "secretKeyRef": {
-                        "name": "${NAME}",
-                        "key": "admin-user"
-                      }
-                    }
-                  },
-                  {
-                    "name": "ADMIN_PASSWORD",
-                    "valueFrom": {
-                      "secretKeyRef": {
-                        "name": "${NAME}",
-                        "key": "admin-password"
-                      }
-                    }
                   },
                   {
                     "name": "TOB_THEME",
@@ -326,6 +173,24 @@
           }
         }
       }
+    },
+    {
+      "kind": "HorizontalPodAutoscaler",
+      "apiVersion": "autoscaling/v1",
+      "metadata": {
+        "name": "${NAME}",
+        "labels": {
+          "app": "${NAME}"
+        }
+      },
+      "spec": {
+        "scaleTargetRef": {
+          "kind": "DeploymentConfig",
+          "name": "${NAME}"
+        },
+        "minReplicas": 2,
+        "maxReplicas": 6
+      }
     }
   ],
   "parameters": [
@@ -342,12 +207,6 @@
       "required": true,
       "description": "The namespace of the OpenShift project containing the imagestream for the application.",
       "value": "devex-von-tools"
-    },
-    {
-      "name": "APPLICATION_DOMAIN",
-      "displayName": "Application Hostname",
-      "description": "The exposed hostname that will route to the Django service, if left blank a value will be defaulted.",
-      "value": ""
     },
     {
       "name": "DATABASE_SERVICE_NAME",
@@ -369,11 +228,6 @@
       "required": true,
       "description": "Name of the deployed database (see environment variables in deployed database).",
       "value": "TheOrgBook_Database"
-    },
-    {
-      "name": "APP_CONFIG",
-      "displayName": "Application Configuration File Path",
-      "description": "Relative path to Gunicorn configuration file (optional)."
     },
     {
       "name": "DJANGO_SECRET_KEY",
@@ -418,85 +272,11 @@
       "value": "postgresql"
     },
     {
-      "name": "PERSISTENT_VOLUME_SIZE",
-      "displayName": "Persistent Volume Size",
-      "description": "The size of the persistent volume , e.g. 512Mi, 1Gi, 2Gi.",
-      "required": true,
-      "value": "1Gi"
-    },
-    {
-      "name": "MOUNT_PATH",
-      "displayName": "Mount Path",
-      "description": "The path to mount the persistent volume.",
-      "required": true,
-      "value": "/home/indy/.indy_client/wallet"
-    },
-    {
-      "name": "INDY_WALLET_SEED",
-      "displayName": "Indy Wallet Seed",
-      "description": "The seed that the indy wallet uses to generate predictable keys.",
-      "required": true,
-      "value": "the_org_book_dev_000000000000000"
-    },
-    {
-      "name": "LEDGER_URL",
-      "displayName": "VON network ledger url.",
-      "description": "URL for a running instance of the von-network.",
-      "required": true,
-      "value": "http://159.89.115.24"
-    },
-    {
-      "name": "INDY_WALLET_TYPE",
-      "displayName": "Indy Wallet Type",
-      "description": "The wallet type to use; remote (enterprise) or virtual (local), defaults to virtual.",
-      "required": true,
-      "value": "virtual"
-    },
-    {
       "name": "TOB_THEME",
       "displayName": "TheOrgBook Theme",
       "description": "The theme to use for the tob-api.  This defines which customizations to load for the application.",
       "required": true,
       "value": "bcgov"
-    },
-    {
-      "name": "USE_AUTHENTICATION",
-      "displayName": "Use Authentication",
-      "description": "Enable or disable the use of authentication on the API.  When set to `False` the API will be unprotected.",
-      "required": false,
-      "value": ""
-    },
-    {
-      "name": "USER_ID",
-      "displayName": "API Username",
-      "description": "Username for the account that will be used for accessing the API.  Needs to be basee64 encoded.",
-      "required": true,
-      "generate": "expression",
-      "from": "[a-zA-Z_][a-zA-Z0-9_]{10}"
-    },
-    {
-      "name": "USER_PASSWORD",
-      "displayName": "API Password",
-      "description": "Password for the account that will be used for accessing the API.  Needs to be basee64 encoded.",
-      "required": true,
-      "generate": "expression",
-      "from": "[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}"
-    },
-    {
-      "name": "ADMIN_USER_ID",
-      "displayName": "API Admin Username",
-      "description": "Username for the API superuser account.  Needs to be basee64 encoded.",
-      "required": true,
-      "generate": "expression",
-      "from": "[a-zA-Z_][a-zA-Z0-9_]{10}"
-    },
-    {
-      "name": "ADMIN_PASSWORD",
-      "displayName": "API Admin Password",
-      "description": "Password for the API superuser account.  Needs to be basee64 encoded.",
-      "required": true,
-      "generate": "expression",
-      "from": "[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}"
     },
     {
       "name": "APP_SCRIPT",
@@ -513,23 +293,16 @@
       "value": "rabbitmq"
     },
     {
-      "name": "CPU_LIMIT",
-      "displayName": "Resources CPU Limit",
-      "description": "The resources CPU limit (in cores) for this build.",
-      "required": true,
-      "value": "1"
-    },
-    {
-      "name": "MEMORY_LIMIT",
-      "displayName": "Resources Memory Limit",
-      "description": "The resources Memory limit (in Mi, Gi, etc) for this build.",
-      "required": true,
-      "value": "1.5Gi"
-    },
-    {
       "name": "CPU_REQUEST",
       "displayName": "Resources CPU Request",
       "description": "The resources CPU request (in cores) for this build.",
+      "required": true,
+      "value": "10m"
+    },
+    {
+      "name": "CPU_LIMIT",
+      "displayName": "Resources CPU Limit",
+      "description": "The resources CPU limit (in cores) for this build.",
       "required": true,
       "value": "250m"
     },
@@ -537,6 +310,13 @@
       "name": "MEMORY_REQUEST",
       "displayName": "Resources Memory Request",
       "description": "The resources Memory request (in Mi, Gi, etc) for this build.",
+      "required": true,
+      "value": "256Mi"
+    },
+    {
+      "name": "MEMORY_LIMIT",
+      "displayName": "Resources Memory Limit",
+      "description": "The resources Memory limit (in Mi, Gi, etc) for this build.",
       "required": true,
       "value": "512Mi"
     }
