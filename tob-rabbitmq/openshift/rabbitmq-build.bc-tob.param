@@ -1,0 +1,10 @@
+#=========================================================
+# OpenShift template parameters for:
+# Component: tob-rabbitmq
+# Template File: templates/rabbitmq-build.json
+#=========================================================
+NAME=rabbitmq
+OUTPUT_IMAGE_TAG=latest
+SOURCE_IMAGE_KIND=DockerImage
+SOURCE_IMAGE_NAME=rabbitmq
+SOURCE_IMAGE_TAG=latest

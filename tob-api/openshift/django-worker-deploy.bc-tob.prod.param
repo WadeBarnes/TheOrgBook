@@ -1,0 +1,23 @@
+#=========================================================
+# OpenShift template parameters for:
+# Component: tob-api
+# Template File: templates/django/django-worker-deploy.json
+#=========================================================
+# NAME=django-worker
+# IMAGE_NAMESPACE=devex-von-tools
+# DATABASE_SERVICE_NAME=postgresql
+# DATABASE_ENGINE=postgresql
+# DATABASE_NAME=TheOrgBook_Database
+# #DJANGO_SECRET_KEY=[\w]{50}
+# DJANGO_DEBUG=False
+# SOLR_SERVICE_NAME=solr
+# SOLR_CORE_NAME=the_org_book
+TAG_NAME=prod
+# DATABASE_DEPLOYMENT_NAME=postgresql
+# TOB_THEME=bcgov
+# APP_SCRIPT=start-celery-worker.sh
+# RABBITMQ_SVC_NAME=rabbitmq
+# CPU_REQUEST=10m
+# CPU_LIMIT=250m
+# MEMORY_REQUEST=256Mi
+# MEMORY_LIMIT=512Mi
