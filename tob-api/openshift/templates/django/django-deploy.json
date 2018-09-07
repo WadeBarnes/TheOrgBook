@@ -291,6 +291,24 @@
                   {
                     "name": "TOB_THEME",
                     "value": "${TOB_THEME}"
+                  },
+                  {
+                    "name": "RABBITMQ_USER",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "${RABBITMQ_SVC_NAME}",
+                        "key": "default-user"
+                      }
+                    }
+                  },
+                  {
+                    "name": "RABBITMQ_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "${RABBITMQ_SVC_NAME}",
+                        "key": "default-password"
+                      }
+                    }
                   }
                 ],
                 "resources": {
@@ -486,6 +504,13 @@
       "required": true,
       "generate": "expression",
       "from": "[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}"
+    },
+    {
+      "name": "RABBITMQ_SVC_NAME",
+      "displayName": "RabbitMQ Service Name",
+      "description": "The name of the RabbitMQ service.",
+      "required": true,
+      "value": "rabbitmq"
     },
     {
       "name": "CPU_REQUEST",
