@@ -132,6 +132,10 @@
                     "value": "${SOLR_CORE_NAME}"
                   },
                   {
+                    "name": "LEDGER_URL",
+                    "value": "${LEDGER_URL}"
+                  },
+                  {
                     "name": "TOB_THEME",
                     "value": "${TOB_THEME}"
                   },
@@ -258,6 +262,13 @@
       "value": "the_org_book"
     },
     {
+      "name": "LEDGER_URL",
+      "displayName": "VON network ledger url.",
+      "description": "URL for a running instance of the von-network.",
+      "required": true,
+      "value": "http://159.89.115.24"
+    },
+    {
       "name": "TAG_NAME",
       "displayName": "Environment TAG name",
       "description": "The TAG name for this environment, e.g., dev, test, prod",
@@ -318,7 +329,7 @@
       "displayName": "Resources Memory Limit",
       "description": "The resources Memory limit (in Mi, Gi, etc) for this build.",
       "required": true,
-      "value": "512Mi"
+      "value": "1.5Gi"
     }
   ]
 }
