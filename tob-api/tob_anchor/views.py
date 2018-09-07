@@ -1,3 +1,4 @@
+import os
 import asyncio
 import logging
 import time
@@ -201,9 +202,19 @@ async def store_credential(request):
     perf_proc = _time_start("process_credential")
     if result.get("stored"):
         stored = result["stored"]
-        tasks.process_credential.delay(
-            stored.cred.cred_data, stored.cred.cred_req_metadata, stored.cred_id
-        )
+
+        process_rabbit = os.getenv("PROCESS_RABBIT")
+        if process_rabbit:
+            tasks.process_credential.delay(
+                stored.cred.cred_data, stored.cred.cred_req_metadata, stored.cred_id
+            )
+
+        process_memory = os.getenv("PROCESS_MEMORY")
+        if process_memory:
+            tasks.process_credential(
+                stored.cred.cred_data, stored.cred.cred_req_metadata, stored.cred_id
+            )
+
     LOGGER.warn("<<< Store credential: %s", _time_end(perf_proc))
 
     return result
