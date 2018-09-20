@@ -12,6 +12,8 @@ export components="tob-db tob-solr tob-api tob-web tob-wallet"
 # Override environments, since there is only one:
 # devex-bcgov-dac-dev
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+export DEPLOYMENT_ENV_NAME="dev"
 export DEV="dev"
 export TEST="dev"
 export PROD="dev"
+
