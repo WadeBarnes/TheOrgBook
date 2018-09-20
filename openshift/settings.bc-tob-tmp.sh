@@ -6,6 +6,9 @@ export PROJECT_NAMESPACE="devex-bcgov-dac"
 # The project components
 export components="tob-db tob-solr tob-api tob-web tob-wallet"
 
+# Used for tmp deployment scripts
+export images="postgresql solr django angular-on-nginx schema-spy"
+
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # Danger, Danger, Will Robinson!
 # ----------------------------------------------

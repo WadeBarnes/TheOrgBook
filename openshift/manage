@@ -67,6 +67,12 @@ usage () {
         For example;
           $0 -e dev recycle django
 
+    deplyToBcTobProdTmp
+      - Deploy images to the bc-tob-prod-tmp environment.  Deploys images tagged for `bc-tob-test` by default. 
+        For examples;
+          $0 -p bc-tob-prod-tmp deplyToBcTobProdTmp
+          $0 -p bc-tob-prod-tmp deplyToBcTobProdTmp latest
+
 EOF
 exit 1
 }
@@ -218,6 +224,19 @@ rebuildSearchIndex() {
   runInContainerInteractively ${_apiPodName} './rebuildSearchIndex.sh'
   exitOnError
 }
+
+deplyToBcTobProdTmp() {
+  _fromTag=${1}
+  if [ -z "${_fromTag}" ]; then
+    echo -e \\n"deplyToBcTobProdTmp; Missing parameter!"\\n
+    exit 1
+  fi
+
+  switchProject
+  exitOnError
+
+  tagProjectImages.sh -s "${_fromTag}" -t bc-tob-prod-tmp
+}
 # =================================================================================================================
 
 pushd ${SCRIPT_HOME} >/dev/null
@@ -264,6 +283,9 @@ case "${_cmd}" in
     ;;
   recycle)
     recyclePods ${@}
+    ;;
+  deplytobctobprodtmp)
+    deplyToBcTobProdTmp ${1:-bc-tob-test}
     ;;
   *)
     echoWarning "Unrecognized command; ${_cmd}"
