@@ -331,6 +331,10 @@
                   {
                     "name": "TOB_THEME",
                     "value": "${TOB_THEME}"
+                  },
+                  {
+                    "name": "WALLET_ENCRYPTION_KEY",
+                    "value": "${WALLET_ENCRYPTION_KEY}"
                   }
                 ],
                 "resources": {
@@ -533,6 +537,13 @@
       "description": "The theme to use for the tob-api.  This defines which customizations to load for the application.",
       "required": true,
       "value": "bcgov"
+    },
+    {
+      "name": "WALLET_ENCRYPTION_KEY",
+      "displayName": "Wallet Encription Key",
+      "description": "The key used to encrypt the wallet, you should supply a random value for this.",
+      "required": true,
+      "value": "key"
     },
     {
       "name": "USE_AUTHENTICATION",

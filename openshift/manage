@@ -232,9 +232,6 @@ deplyToBcTobProdTmp() {
     exit 1
   fi
 
-  switchProject
-  exitOnError
-
   tagProjectImages.sh -s "${_fromTag}" -t bc-tob-prod-tmp
 }
 # =================================================================================================================
