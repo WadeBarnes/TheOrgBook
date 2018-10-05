@@ -85,6 +85,8 @@ async def add_server_headers(request, response):
 async def init_app(on_startup=None, on_cleanup=None):
     from aiohttp.web import Application
     from aiohttp_wsgi import WSGIHandler
+    from tob_anchor.processor import CredentialProcessorQueue
+    from tob_anchor.solrqueue import SolrQueue
     from tob_anchor.urls import get_routes
 
     wsgi_handler = WSGIHandler(application)
@@ -93,6 +95,11 @@ async def init_app(on_startup=None, on_cleanup=None):
     app.router.add_routes(get_routes())
     # all other requests forwarded to django
     app.router.add_route("*", "/{path_info:.*}", wsgi_handler)
+
+    processor = CredentialProcessorQueue()
+    processor.setup(app)
+    solrqueue = SolrQueue()
+    solrqueue.setup(app)
 
     if on_startup:
         app.on_startup.append(on_startup)
@@ -105,14 +112,14 @@ async def init_app(on_startup=None, on_cleanup=None):
     return app
 
 
+def run_django_proc(proc, *args):
+    try:
+        return proc(*args)
+    finally:
+        django.db.connections.close_all()
+
 def run_django(proc, *args) -> asyncio.Future:
-    def runner(proc, *args):
-        try:
-            ret = proc(*args)
-            return ret
-        finally:
-            django.db.connections.close_all()
-    return asyncio.get_event_loop().run_in_executor(None, runner, proc, *args)
+    return asyncio.get_event_loop().run_in_executor(None, run_django_proc, proc, *args)
 
 
 def run_reindex():
