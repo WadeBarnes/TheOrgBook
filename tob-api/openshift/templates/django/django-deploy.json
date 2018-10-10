@@ -408,6 +408,10 @@
                   {
                     "name": "TOB_THEME",
                     "value": "${TOB_THEME}"
+                  },
+                  {
+                    "name": "APPLICATION_URL",
+                    "value": "${APPLICATION_URL}"
                   }
                 ],
                 "resources": {
@@ -441,7 +445,7 @@
           "name": "${NAME}"
         },
         "minReplicas": 1,
-        "maxReplicas": 4
+        "maxReplicas": 5
       }
     }
   ],
@@ -761,6 +765,13 @@
       "description": "The resources Memory limit (in Mi, Gi, etc) for this build.",
       "required": true,
       "value": "512Mi"
+    },
+    {
+      "name": "APPLICATION_URL",
+      "displayName": "Application url",
+      "description": "This service's url.",
+      "required": true,
+      "value": "https://theorgbook.pathfinder.gov.bc.ca"
     }
   ]
 }
