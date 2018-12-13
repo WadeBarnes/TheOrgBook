@@ -1,31 +1,14 @@
+@import "./common";
+
 .page-min-height {
-  min-height: 36em;
+  min-height: 20em;
 }
 
-.mrgn-tp-0 {
-  margin-top: 0;
-}
-.mrgn-tp-sm {
-  margin-top: 8px;
-}
-.mrgn-tp-md {
-  margin-top: 1.5rem;
-}
-.mrgn-tp-lg {
-  margin-top: 3rem;
-}
-
-.mrgn-bttm-0 {
-  margin-bottom: 0;
-}
-.mrgn-bttm-sm {
-  margin-bottom: 8px;
-}
-.mrgn-bttm-md {
-  margin-bottom: 1.5rem;
-}
-.mrgn-bttm-lg {
-  margin-bottom: 3rem;
+h3, h4, h5 {
+  &.control-label {
+    cursor: default;
+    font-size: $font-size-base;
+  }
 }
 
 @keyframes spin {
@@ -38,6 +21,7 @@
 }
 
 $indicator-color: #666;
+$dark-indicator-color: #eeeff3;
 $indicator-size: 1em;
 $indicator-thickness: 0.2em;
 .loading-indicator {
@@ -63,6 +47,15 @@ $indicator-thickness: 0.2em;
 		border: $indicator-thickness solid transparentize($indicator-color, 0.8);
 		content: ' ';
 	}
+	.alt-text {
+	  display: none;
+	}
+	.dark-bg & {
+	  border-top-color: $dark-indicator-color;
+    &:after {
+		  border-color: transparentize($dark-indicator-color, 0.8);
+    }
+  }
 }
 
 .page-load {
@@ -74,7 +67,13 @@ $indicator-thickness: 0.2em;
 }
 
 .text-identifier {
-	font-family: monospace;
+	font-family: $font-family-monospace;
+	font-size: 95%;
+}
+
+.text-help {
+  font-weight: normal;
+  color: $text-muted;
 }
 
 @keyframes loading {
@@ -103,8 +102,64 @@ $indicator-thickness: 0.2em;
   }
 }
 
+// Standard margins for icons
+.fa.left {
+  margin-right: 0.25em;
+}
+.fa.right {
+  margin-left: 0.25em;
+}
+// Fix button height when only icon is visible
+.btn .fa {
+  line-height: inherit;
+}
+
 .form-body {
   > .form-group:last-child {
     margin-bottom: 0;
+  }
+}
+
+// Restore panel-info etc equivalents
+@each $color, $value in (success, info, warning, danger) {
+  .card-#{$color} {
+    border-color: theme-color-level($color, $alert-border-level);
+    > .card-header {
+      @include gradient-bg(theme-color-level($color, $alert-bg-level));
+      border-color: theme-color-level($color, $alert-border-level);
+      color: theme-color-level($color, $alert-color-level);
+    }
+    > .card-footer {
+      border-color: theme-color-level($color, $alert-border-level);
+    }
+  }
+}
+.card-warning {
+    border-color: theme-color-level(warning, -6);
+    > .card-header, > .card-footer {
+        border-color: theme-color-level(warning, -6);
+    }
+}
+
+// Header accessibility links
+a.a11y-link {
+  color: theme-color(light);
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  text-align: center;
+  width: 100%;
+  &:focus {
+    color: theme-color(light);
+    outline: none;
+    z-index: 10;
+  }
+  .content {
+    background: theme-color(primary);
+    border: 1px solid theme-color(light);
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 1.1;
+    padding: 0.25em;
   }
 }

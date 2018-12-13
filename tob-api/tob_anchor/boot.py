@@ -35,8 +35,7 @@ from vonx.indy.manager import IndyManager
 
 from .config import (
     indy_general_wallet_config,
-    indy_holder_wallet_config,
-    indy_verifier_wallet_config,
+    indy_wallet_config,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -70,10 +69,6 @@ def indy_env():
 
 def indy_holder_id():
     return settings.INDY_HOLDER_ID
-
-
-def indy_verifier_id():
-    return settings.INDY_VERIFIER_ID
 
 
 async def add_server_headers(request, response):
@@ -126,12 +121,6 @@ def run_reindex():
     from django.core.management import call_command
     batch_size = os.getenv("SOLR_BATCH_SIZE", 500)
     call_command("update_index", "--max-retries=5", "--batch-size={}".format(batch_size))
-    update_suggester()
-
-
-def update_suggester():
-    from api_v2.suggest import SuggestManager
-    SuggestManager().rebuild()
 
 
 def run_migration():
@@ -139,21 +128,33 @@ def run_migration():
     call_command("migrate")
 
 
-def pre_init(proc=False):
+def start_indy_manager(proc: bool = False):
     global MANAGER, STARTED
     if proc:
         MANAGER.start_process()
     else:
         MANAGER.start()
     STARTED = True
+
+
+def pre_init():
+    start_indy_manager()
+    run_coro(perform_register_services())
+
+
+async def perform_register_services(app=None):
+    global MANAGER, STARTED
+    if app:
+        return app.loop.create_task(
+            perform_register_services()
+        )
     try:
-        run_coro(register_services())
+        await register_services()
     except:
         LOGGER.exception("Error during Indy initialization:")
         MANAGER.stop()
         STARTED = False
         raise
-
 
 async def register_services():
 
@@ -162,31 +163,22 @@ async def register_services():
     client = indy_client()
     wallet_config = indy_general_wallet_config()
 
-    LOGGER.info("Registering holder service")
-    holder_wallet_id = await client.register_wallet(
-        indy_holder_wallet_config(wallet_config))
-    LOGGER.debug("Indy holder wallet id: %s", holder_wallet_id)
+    LOGGER.info("Registering indy agent")
+    wallet_id = await client.register_wallet(
+        indy_wallet_config(wallet_config))
+    LOGGER.debug("Indy wallet id: %s", wallet_id)
 
-    holder_id = await client.register_holder(holder_wallet_id, {
+    agent_id = await client.register_issuer(wallet_id, {
         "id": indy_holder_id(),
         "name": "TheOrgBook Holder",
+        "holder_verifier": True,
     })
-    LOGGER.debug("Indy holder id: %s", holder_id)
-
-    LOGGER.info("Registering verifier service")
-    verifier_wallet_id = await client.register_wallet(
-        indy_verifier_wallet_config(wallet_config))
-    LOGGER.debug("Indy verifier wallet id: %s", verifier_wallet_id)
-
-    verifier_id = await client.register_verifier(verifier_wallet_id, {
-        "id": indy_verifier_id(),
-        "name": "TheOrgBook Verifier",
-    })
-    LOGGER.info("Indy verifier id: %s", verifier_id)
+    LOGGER.debug("Indy agent id: %s", agent_id)
 
     await client.sync()
     LOGGER.debug("Indy client synced")
     LOGGER.debug(await client.get_status())
+
 
 def shutdown():
     MANAGER.stop()

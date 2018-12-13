@@ -7,8 +7,11 @@ services:
     image: angular-on-nginx
     environment:
       - API_URL=${API_URL}
+      - APPLICATION_URL=${APPLICATION_URL}
       - IpFilterRules=${IpFilterRules}
       - RealIpFrom=${RealIpFrom}
+      - HTTP_BASIC_USERNAME=${HTTP_BASIC_USERNAME}
+      - HTTP_BASIC_PASSWORD=${HTTP_BASIC_PASSWORD}
       - TOB_THEME=${TOB_THEME}
       - WEB_BASE_HREF=${WEB_BASE_HREF}
       - WEB_DEPLOY_URL=${WEB_DEPLOY_URL}
@@ -18,7 +21,32 @@ services:
       - "${WEB_HTTP_PORT}:8080"
     depends_on:
       - tob-api
-    # command: npm start
+
+  #
+  # tob-web-dev
+  # Run tob-web in development mode with auto-reload and inspector support
+  #
+  tob-web-dev:
+    image: angular-dev
+    environment:
+      - API_URL=${API_URL}
+      - APPLICATION_URL=${APPLICATION_URL}
+      - DEV_MODE=false
+      - NODE_ENV=development
+      - NPM_CONFIG_LOGLEVEL=notice
+      - NPM_RUN=dev
+      - TOB_THEME=${TOB_THEME}
+      - WEB_BASE_HREF=${WEB_BASE_HREF}
+      - WEB_DEPLOY_URL=${WEB_DEPLOY_URL}
+    networks:
+      - tob
+    ports:
+      - "${WEB_HTTP_PORT}:8080"
+      - 5858:5858
+    volumes:
+      - "../tob-web/src:/opt/app-root/src/src"
+    depends_on:
+      - tob-api
 
   # 
   # tob-api
@@ -53,14 +81,13 @@ services:
       - POSTGRESQL_WALLET_ADMIN_PASSWORD=${POSTGRESQL_ADMIN_PASSWORD}
       - WALLET_ENCRYPTION_KEY=${WALLET_ENCRYPTION_KEY}
       - INDY_WALLET_SEED=${INDY_WALLET_SEED}
-      - INDY_VERIFIER_WALLET_SEED=${INDY_VERIFIER_WALLET_SEED}
-      - HOLDER_WALLET_DID=${HOLDER_WALLET_DID}
-      - VERIFIER_WALLET_DID=${VERIFIER_WALLET_DID}
+      - INDY_WALLET_DID=${INDY_WALLET_DID}
       - DEBUG=${DEBUG}
       - SQL_DEBUG=${SQL_DEBUG}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - DJANGO_DEBUG=${DJANGO_DEBUG}
       - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL}
+      - OPTIMIZE_TABLE_ROW_COUNTS=${OPTIMIZE_TABLE_ROW_COUNTS}
       - SOLR_SERVICE_NAME=${SOLR_SERVICE_NAME}
       - SOLR_CORE_NAME=${SOLR_CORE_NAME}
       - SKIP_INDEXING_ON_STARTUP=${SKIP_INDEXING_ON_STARTUP}
@@ -151,7 +178,7 @@ services:
   # tob-db
   # 
   tob-db:
-    image: registry.access.redhat.com/rhscl/postgresql-95-rhel7:9.5
+    image: postgresql
     environment:
       - POSTGRESQL_USER=${POSTGRESQL_USER}
       - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
@@ -167,7 +194,7 @@ services:
   # wallet-db
   # 
   wallet-db:
-    image: registry.access.redhat.com/rhscl/postgresql-95-rhel7:9.5
+    image: postgresql
     environment:
       - POSTGRESQL_USER=${POSTGRESQL_USER}
       - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}

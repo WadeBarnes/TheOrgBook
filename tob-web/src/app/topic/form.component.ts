@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AppConfigService } from '../app-config.service';
 import { GeneralDataService } from '../general-data.service';
 import { Fetch, Model } from '../data-types';
 import { Subscription } from 'rxjs/Subscription';
@@ -10,13 +11,12 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['../../themes/_active/topic/form.component.scss']
 })
 export class TopicFormComponent implements OnInit, OnDestroy {
-  type: string;
+  source_type: string;
   source_id: string;
-  loaded: boolean;
-  loading: boolean;
   credsFormat: string = 'rows';
   _filterActive: boolean = true;
   showFilters: boolean = false;
+  _sectionsLoaded = {};
 
   private _loader = new Fetch.ModelLoader(Model.TopicFormatted);
 
@@ -25,20 +25,25 @@ export class TopicFormComponent implements OnInit, OnDestroy {
   private _idSub: Subscription;
 
   constructor(
+    private _config: AppConfigService,
     private _dataService: GeneralDataService,
     private _route: ActivatedRoute,
     private _router: Router) { }
 
   ngOnInit() {
+    this._sectionsLoaded = {};
     this._loader.ready.subscribe(result => {
       this._fetchCreds();
     });
     this._idSub = this._route.params.subscribe(params => {
-      this.type = params['topicType'];
+      this.source_type = params['sourceType'];
       this.source_id = params['sourceId'];
       let ident = this.ident;
       this._dataService.loadRecord(this._loader, ident, {primary: true});
     });
+    let format = this._config.getConfig().TOPIC_CREDS_FORMAT;
+    if(format)
+      this.credsFormat = format;
   }
 
   ngOnDestroy() {
@@ -48,8 +53,9 @@ export class TopicFormComponent implements OnInit, OnDestroy {
   }
 
   get ident(): string {
-    if(this.type && this.source_id) {
-      return this.type === '_' ? this.source_id : `ident/${this.type}/${this.source_id}`;
+    let source_type = this.source_type || this._dataService.defaultTopicType;
+    if(source_type && this.source_id) {
+      return this.source_type === '_' ? this.source_id : `ident/${source_type}/${this.source_id}`;
     }
   }
 
@@ -65,7 +71,7 @@ export class TopicFormComponent implements OnInit, OnDestroy {
   }
 
   get names(): Model.Name[] {
-    return this.loaded && this.topic.names;
+    return this.topic && this.topic.names;
   }
 
   get result$() {
@@ -91,6 +97,30 @@ export class TopicFormComponent implements OnInit, OnDestroy {
       revoked: this._filterActive ? 'false': '',
     };
     this._dataService.loadList(this._creds, {query: credsFilter});
+  }
+
+  protected onLoadSection(name, state?) {
+    this._sectionsLoaded[name] = state === undefined ? true : state;
+  }
+
+  protected isLoaded(...sections: string[]) {
+    if(! sections) sections = ['all'];
+    for(let s of sections) {
+      let state = null;
+      if(s === 'all') {
+        if(this._loader.result.error)
+          state = true;
+        else
+          state = this.isLoaded('topic', 'related_to', 'related_from' /*, 'creds'*/);
+      } else if(s === 'topic') {
+        state = this._loader.result.loaded;
+      } else {
+        state = (s in this._sectionsLoaded);
+      }
+      if(! state)
+        return false;
+    }
+    return true;
   }
 
 }

@@ -37,6 +37,17 @@ export class IssuerFormComponent implements OnInit, OnDestroy {
     this._credTypes.complete();
   }
 
+  get fullDid() {
+    let did = this.result.data.did;
+    if(did && ! did.startsWith('did:sov:'))
+      did = `did:sov:${did}`;
+    return did;
+  }
+
+  get didResolverUrl() {
+    return 'https://uniresolver.io/#did=' + this.fullDid;
+  }
+
   get result() {
     return this._loader.result;
   }

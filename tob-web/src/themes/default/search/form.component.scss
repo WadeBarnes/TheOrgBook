@@ -1,5 +1,4 @@
 .search-head {
-  max-width: 36em;
 }
 
 .search-types {
@@ -16,11 +15,6 @@
   }
 }
 
-.results {
-  font-size: 1.6rem;
-  margin-top: 4rem;
-}
-
 .facet {
   label {
     display: block;
@@ -33,18 +27,15 @@ label + .facet {
 }
 
 .results-nav {
-  font-size: 1.6rem;
   padding: 1rem;
 }
 
 .results-none {
-  font-size: 1.8rem;
   font-style: italic;
   padding: 1rem 0;
 }
 
 .map {
-  font-size: 1.6rem;
   .map-image {
     border: 1px solid #ddd;
     background: url(/assets/map.png);

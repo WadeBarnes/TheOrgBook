@@ -1,6 +1,9 @@
+@import "./common";
+
+$well-border-color: $table-border-color;
 
 .well {
-  border: 1px solid #ccc;
+  border: 1px solid $well-border-color;
   border-radius: 8px;
   padding: 2em;
   word-wrap: break-word;
@@ -11,42 +14,29 @@
   margin-top: 0;
 }
 
+$creds-panel-header-bg: rgba(0, 0, 0, 0.1);
+$creds-panel-header-border-color: $card-border-color;
 
 .creds-panel {
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  // border: 1px solid $creds-panel-border-color;
+  // border-radius: 8px;
   display: flex;
   flex-flow: column nowrap;
   max-height: 40em;
   overflow: hidden;
-  > .panel-heading {
-    background-color: #fff;
-    border-bottom: 1px solid #ccc;
-    flex: none;
-    padding: 1rem 1.2rem 0.8rem;
-    .panel-title {
-      font-size: 2rem;
-    }
-  }
   .filters {
-    background-color: #eee;
-    font-size: 1.4rem;
+    background: $creds-panel-header-bg;
   }
   .columns {
-    background-color: #eee;
-    border-bottom: 3px double #bbb;
-    border-top: 1px solid #bbb;
-    font-size: 1.5rem;
+    background: $creds-panel-header-bg;
+    border-bottom: 3px double $creds-panel-header-border-color;
     a {
       border-bottom: 1px solid #999;
       color: #555;
       text-decoration: none;
     }
   }
-  > .panel-body {
-    background-color: #fff;
-    flex: auto;
-    font-size: 15px;
+  > .card-body {
     overflow: auto;
     padding-bottom: 0;
     padding-top: 0;
@@ -58,40 +48,14 @@
 }
 
 .name-panel {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  display: flex;
-  flex-flow: column nowrap;
-  margin-bottom: 0;
-  max-height: 40em;
-  overflow: hidden;
   > .panel-heading {
-    background-color: #fff;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    flex: none;
-    padding: 1rem 1.2rem 0.8rem;
-    .panel-title, .name-title {
-      flex: auto;
-      font-size: 2rem;
-    }
     .name-meta {
       align-self: flex-end;
       flex: 0 0 25em;
       font-size: 75%;
     }
-    .util-link {
-      font-size: 1.3rem;
-    }
   }
   > .panel-body {
-    background-color: #fff;
-    flex: auto;
-    font-size: 15px;
-    overflow: auto;
     word-wrap: break-word;
-  }
-  > .panel-footer {
-    border-top: 1px solid #ccc;
   }
 }

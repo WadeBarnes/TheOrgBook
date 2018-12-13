@@ -1,13 +1,12 @@
 import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { LocationStrategy } from '@angular/common';
-import { Title } from '@angular/platform-browser';
+import { Title, Meta } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { LocalizeRouterService } from 'localize-router';
-import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 import { GeneralDataService } from './general-data.service';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs/Subscription';
-import 'rxjs/add/operator/mergeMap';
+import { mergeMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +14,7 @@ import 'rxjs/add/operator/mergeMap';
   styleUrls: ['../themes/_active/app/app.component.scss']
 })
 export class AppComponent implements OnInit, OnDestroy {
-  currentLang : string;
+  currentLang: string;
   inited = false;
   // to be moved into external JSON loaded by localize-router
   supportedLanguages = [
@@ -28,24 +27,27 @@ export class AppComponent implements OnInit, OnDestroy {
       label: 'Français'
     }
   ];
-  altLang : string;
-  altLangLabel : string;
+  altLang: string;
+  altLangLabel: string;
   defaultTitleLabel = 'app.title';
   showTitlePrefix: boolean = true;
   titlePrefix = 'app.title-prefix';
   private _titleLabel;
-  private _titleText;
+  private _titleText = '';
   private _titlePrefixText;
   private _onFetchTitle: Subscription;
   private _onLangChange: Subscription;
   private _isPopState: boolean;
   private _currentRecord: any;
+  private _prevRoute: string;
+  private _metaDefaults = null;
 
   constructor(
     public _el: ElementRef,
     private _dataService: GeneralDataService,
     private _localize: LocalizeRouterService,
     private _locStrat: LocationStrategy,
+    private _meta: Meta,
     private _route: ActivatedRoute,
     private _router: Router,
     private _titleService: Title,
@@ -69,6 +71,18 @@ export class AppComponent implements OnInit, OnDestroy {
       this.updateTitle();
     });
 
+    let scrollWindow = function(top, now?) {
+      if(! now) {
+        setTimeout(() => scrollWindow(top, true), 50);
+        return;
+      }
+      try {
+        window.scrollTo({top: top || 0, left: 0, behavior: 'smooth'});
+      } catch(e) {
+        window.scrollTo(0, top || 0);
+      }
+    };
+
     this._router.events
       .filter((event) => event instanceof NavigationEnd)
       .map(() => this._route)
@@ -77,14 +91,33 @@ export class AppComponent implements OnInit, OnDestroy {
         return route;
       })
       .filter((route) => route.outlet === 'primary')
-      .mergeMap((route) => route.data)
-      .subscribe((data) => {
+      .subscribe((route) => {
+        let data = route.snapshot.data;
+        let fragment = route.snapshot.fragment;
+        let routePath = route.snapshot.routeConfig.path;
         if (!this._isPopState) {
           // scroll to page top only when navigating to a new page (not via history state)
-          window.scrollTo(0, 0);
+          // skip when fragment (anchor name) is set
+          let outer = null;
+          if(fragment) {
+            outer = document.getElementById(fragment);
+          }
+          if(! outer) {
+            outer = document.getElementById('primaryOutlet');
+          }
+          if(! outer) {
+            outer = document.getElementsByTagName('main')[0];
+          }
+          let top = outer && (<HTMLElement>outer).offsetTop;
+          if(top) {
+            if(window.scrollY > top) scrollWindow(top);
+          } else {
+            scrollWindow(0);
+          }
         }
         this._isPopState = false;
         this._currentRecord = null;
+        this._prevRoute = routePath;
 
         let title = data['title'] || data['breadcrumb'];
         this.titleLabel = title;
@@ -217,18 +250,61 @@ export class AppComponent implements OnInit, OnDestroy {
     if(this.showTitlePrefix && this._titlePrefixText) {
       title = this._titlePrefixText;
     }
-    title += this._titleText;
+    if(this._titleText)
+      title += this._titleText;
     if(title && this._currentRecord) {
       let recordTitle = this._currentRecord.pageTitle;
       if(recordTitle) {
         title += ': ' + recordTitle;
       }
     }
-    this.setTitle(title);
+    if(title) {
+      this.setTitle(title);
+      this.updateMeta(title);
+    }
   }
 
   public setTitle(newTitle: string) {
     this._titleService.setTitle(newTitle);
+  }
+
+  public updateMeta(title) {
+    if(! this._metaDefaults) {
+      let defaults = {};
+      let initFrom = ['og:title', 'og:type', 'og:description', 'og:url'];
+      for(let attr of initFrom) {
+        let meta = this._meta.getTag(`property="${attr}"`);
+        if(meta) defaults[attr] = meta.getAttribute('content');
+      };
+      this._metaDefaults = defaults;
+    }
+    let tags = Object.assign({}, this._metaDefaults);
+    let route = this._route;
+    while(route.firstChild) {
+      route = route.firstChild;
+    }
+    if(route && route.routeConfig && route.routeConfig.path !== 'home') {
+      tags['og:url'] = location.href;
+      if(this._currentRecord) {
+        let recLink = this._currentRecord.link;
+        if(recLink) {
+          // let linkParts = <string[]>this._localize.translateRoute(recLink);
+          let linkStr = recLink.join('').replace(/^\/(en|fr)/, '');
+          tags['og:url'] = location.origin + linkStr;
+        }
+      }
+      if(title) {
+        tags['og:title'] = title;
+        tags['og:type'] = 'article';
+      }
+    }
+    for(let attr in tags) {
+      this._meta.updateTag({ property: attr, content: tags[attr] }, `property="${attr}"`);
+    }
+  }
+
+  get showDebugMsg() {
+    return this._dataService.showDebugMsg;
   }
 }
 

@@ -1,5 +1,4 @@
-import os
-
+from django.conf import settings
 from django.conf.urls import url
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework.routers import SimpleRouter
@@ -10,15 +9,17 @@ from api_v2.views import misc, rest, search
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-APPLICATION_URL = os.environ.get("APPLICATION_URL")
-
+API_METADATA = settings.API_METADATA
 schema_view = get_schema_view(
     openapi.Info(
-        title="TheOrgBook API",
+        title=API_METADATA["title"],
         default_version="v2",
-        # description="Description goes here",
+        description=API_METADATA["description"],
+        terms_of_service=API_METADATA["terms"]["url"],
+        contact=openapi.Contact(**API_METADATA["contact"]),
+        license=openapi.License(**API_METADATA["license"]),
     ),
-    url="{}/api/v2".format(APPLICATION_URL),
+    # url="{}/api".format(settings.APPLICATION_URL),
     validators=["flex", "ssv"],
     public=True,
     permission_classes=(AllowAny,),
@@ -41,18 +42,27 @@ router.register(
     search.CredentialTopicSearchView,
     "Credential Topic Search",
 )
-router.register(r"search/credential", search.CredentialSearchView, "Credential Search")
-searchPatterns = [url(r"^search/autocomplete$", search.NameAutocompleteView.as_view())]
+router.register(
+    r"search/credential",
+    search.CredentialSearchView,
+    "Credential Search",
+)
+router.register(
+    r"search/autocomplete",
+    search.NameAutocompleteView,
+    "Name Autocomplete",
+)
 
 # Misc endpoints
 miscPatterns = [
-    url(r"^quickload$", misc.quickload)
+    url(r"^feedback$", misc.send_feedback),
+    url(r"^quickload$", misc.quickload),
 ]
 
 swaggerPatterns = [
-    url(r"^$", schema_view.with_ui("swagger", cache_timeout=None), name="api-docs"),
+    url(r"^$", schema_view.with_ui("swagger", cache_timeout=None), name="api-docs")
 ]
 
 urlpatterns = format_suffix_patterns(
-    router.urls + searchPatterns + miscPatterns + swaggerPatterns
+    router.urls + miscPatterns + swaggerPatterns
 )

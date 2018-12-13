@@ -1,4 +1,5 @@
-<section id="search" *ngIf="(result$ | async) as result">
+<section id="search" class="container" *ngIf="(result$ | async) as result">
+  <app-breadcrumb></app-breadcrumb>
 
   <h1 class="search-title" translate>search.title</h1>
 
@@ -7,20 +8,20 @@
 
       <div class="search-head">
         <div class="search-wrap">
-          <search-input #searchInput (queryChange)="updateQuery($event)" [loading]="searching"></search-input>
+          <search-input #searchInput (accepted)="updateQuery($event)" [loading]="result.loading"></search-input>
         </div>
       </div>
 
       <error-message [error]="result.error" [title]="'search.results-error' | translate"></error-message>
 
-      <div class="row results mrgn-tp-lg" *ngIf="result.loaded">
+      <div class="row results mt-5" *ngIf="result.loaded">
 
         <div class="col-sm-12 rows" *ngIf="result.data as creds">
           <label tabIndex="0" class="control-label" translate>search.results-title</label>
           <ng-container *ngIf="creds.length">
-            <search-nav (nav)="handleNav($event)" [info]="result.pagination"></search-nav>
+            <search-nav (nav)="handleNav($event)" [info]="result.info"></search-nav>
             <cred-list [records]="creds" format="search"></cred-list>
-            <search-nav (nav)="handleNav($event)" [info]="result.pagination"></search-nav>
+            <search-nav (nav)="handleNav($event)" [info]="result.info"></search-nav>
           </ng-container>
           <div tabIndex="0" class="alert alert-info" *ngIf="!creds.length" translate>
             search.no-results

@@ -1,51 +1,81 @@
-.title {
-  letter-spacing: 0.05em;
+@import "./common";
+
+$banner-link-color: theme-color(bcgold);
+$banner-link-hover: lighten($banner-link-color, 10%);
+
+main {
+  padding-top: 0;
 }
 
-.page-header {
-  margin-bottom: 0;
-  .breadcrumb {
-    margin-bottom: 0;
-  }
+.breadcrumb.page-breadcrumb {
+  margin: 1rem 0;
+  padding: 0;
 }
 
-.btn-group > .btn, .btn-default {
-  // why is this necessary??
-  margin-right: 0;
-}
-
-.alert {
-  h2:first-child, h3:first-child, h4:first-child {
-    margin-top: 0;
-  }
-}
-
-header .navbar-nav {
-  float: right;
-  font-size: 16px;
-  margin-right: 5px;
-  margin-top: 5px;
-  > li > a {
-    border: 1px solid transparent;
-    border-radius: 4px;
-    color: #fff;
-    padding: 10px 10px 8px;
+a.body-link, a.title-link, .breadcrumb a {
+  border-bottom: 1px solid rgba($link-color, 0.8);
+  margin-bottom: -1px;
+  text-decoration: none;
+  @include hover-focus {
+    border-bottom-color: $link-hover-color;
     text-decoration: none;
-    &:hover, &:focus, &:active {
-      background: initial;
-      border-color: #fff;
-      text-decoration: underline;
+  }
+}
+
+.title-link {
+  font-size: 110%;
+}
+
+.hero-banner, .footer-detail {
+  padding: 2px 0; // prevent margin collapse
+
+  background: theme-color(primary);
+  color: #fff;
+
+  h1, .h1, h2, .h2, h3, .h3 {
+    font-weight: normal;
+  }
+
+  a:not(.btn) {
+    color: $banner-link-color;
+    @include hover-focus {
+      color: $banner-link-hover;
+    }
+  }
+
+  a.body-link, a.title-link, .breadcrumb a {
+    border-bottom: 1px solid rgba($banner-link-color, 0.8);
+    @include hover-focus {
+      border-bottom-color: $banner-link-hover;
     }
   }
 }
 
+.footer-detail {
+  border-top: 2px solid theme-color(bcgold);
+  font-size: 0.95rem;
+  + nav {
+    border-top: none;
+  }
+}
 
-a.body-link, breadcrumb a {
-  border-bottom: 1px solid rgba(#1a5a96, 0.8);
-  margin-bottom: -1px;
-  text-decoration: none;
-  &:hover, &:focus {
-    border-bottom-color: #0f3355;
-    text-decoration: none;
+.lead {
+  font-weight: 300;
+}
+
+$small-header-ratio: 0.9;
+
+@include media-breakpoint-down(sm) {
+  h1, .h1 {
+    font-size: ($h1-font-size * $small-header-ratio);
+  }
+  h2, .h2 {
+    font-size: ($h2-font-size * $small-header-ratio);
+  }
+  h3, .h3 {
+    font-size: ($h3-font-size * $small-header-ratio);
+  }
+  h4, .h4 {
+    font-size: ($h4-font-size * $small-header-ratio);
   }
 }

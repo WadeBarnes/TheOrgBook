@@ -11,10 +11,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
-import posixpath
-import logging.config
 import os.path
-import glob
 
 from pathlib import Path
 
@@ -31,6 +28,9 @@ try:
 except:
     import haystack
 
+def parse_bool(val):
+    return val and val != '0' and str(val).lower() != "false"
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -46,7 +46,7 @@ SECRET_KEY = os.getenv(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
+DEBUG = parse_bool(os.getenv("DJANGO_DEBUG", "True"))
 
 ALLOWED_HOSTS = ["*"]
 
@@ -123,6 +123,7 @@ WSGI_APPLICATION = "wsgi.application"
 
 DATABASES = {"default": database.config()}
 
+OPTIMIZE_TABLE_ROW_COUNTS = parse_bool(os.getenv("OPTIMIZE_TABLE_ROW_COUNTS", "True"))
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -184,6 +185,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Set up support for proxy headers (provide correct URL in swagger UI)
+USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 LOGGING = {
@@ -245,8 +248,47 @@ if os.getenv("SQL_DEBUG"):
     }
 
 INDY_HOLDER_ID = "TheOrgBook_Holder"
-INDY_VERIFIER_ID = "TheOrgBook_Verifier"
 
+APPLICATION_URL = os.getenv("APPLICATION_URL") or "http://localhost:8080"
+
+API_METADATA = {
+    "title": "OrgBook BC API",
+    "description":
+        "OrgBook BC is a public, searchable directory of digital records for registered "
+        "businesses in the Province of British Columbia. Over time, other government "
+        "organizations and businesses will also begin to issue digital records through "
+        "OrgBook BC. For example, permits and licenses issued by various government services.",
+    "terms": {
+        "url": "https://www2.gov.bc.ca/gov/content/data/open-data",
+    },
+    "contact": {
+        "email": "bcdevexchange@gov.bc.ca",
+    },
+    "license": {
+        "name": "Open Government License - British Columbia",
+        "url": "https://www2.gov.bc.ca/gov/content/data/open-data/api-terms-of-use-for-ogl-information",
+    },
+}
+
+# Words 4 characters and over that shouldn't be considered significant when searching
+SEARCH_SKIP_WORDS = [
+    'assoc', 'association',
+    'company', 'corp', 'corporation',
+    'enterprise', 'enterprises', 'entreprise', 'entreprises',
+    'incorporated', 'incorporée', 'incorporation',
+    'limited', 'limitée',
+]
+
+# Return partial matches
+SEARCH_TERMS_EXCLUSIVE = False
+
+
+#
+# Read settings from a custom settings file
+# based on the path provided as an input parameter
+# The choice of the custom settings file is driven by the value of the TOB_THEME env
+# variable (i.e. ongov)
+#
 custom_settings_file = Path(
     BASE_DIR,
     "custom_settings_" + str(os.getenv("TOB_THEME")).lower() + ".py",

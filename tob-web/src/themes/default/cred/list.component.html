@@ -1,4 +1,4 @@
-<div class="creds-grid" *ngIf="format==='cards'">
+<div class="creds-grid" *ngIf="format==='cards' && records?.length">
   <div class="cred-card" *ngFor="let cred of records">
     <div class="cred-icon" *ngIf="cred.issuer.has_logo">
       <img [src]="cred.issuer.logo_url | resolveUrl" [alt]="'issuer.logo-image' | translate">
@@ -43,10 +43,10 @@
 </div>
 <div class="creds-list creds-search" *ngIf="format==='search'">
   <div class="row cred-row" *ngFor="let cred of records">
-    <div class="col-sm-7">
+    <div class="col-md-7">
       <label>{{cred.topic.typeLabel | translate}}:</label>
       <a [routerLink]="cred.topic.link | localize"
-        class="body-link cred-link name">{{cred.names[0].text}}</a>
+        class="body-link cred-link name ml-1">{{cred.names[0].text}}</a>
       <br>
       <small *ngIf="cred.issuer">
         <label>
@@ -62,7 +62,7 @@
         <span class="claim-info date">{{cred.effective_date | dateFormat: 'effectiveDate'}}</span>
       </small>
     </div>
-    <div class="col-sm-5">
+    <div class="col-md-5">
       <div class="label label-warning" *ngIf="cred.inactive" translate>cred.inactive</div>
       <div class="label label-danger" *ngIf="cred.revoked" translate>cred.expired</div>
 

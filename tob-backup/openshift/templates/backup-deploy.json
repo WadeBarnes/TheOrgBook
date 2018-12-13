@@ -12,7 +12,8 @@
         "name": "${PERSISTENT_VOLUME_NAME}",
         "labels": {
           "app": "${NAME}-persistent",
-          "template": "${NAME}-persistent-template"
+          "template": "${NAME}-persistent-template",          
+          "app-group": "${APP_GROUP}"
         }
       },
       "spec": {
@@ -33,7 +34,8 @@
       "metadata": {
         "name": "${NAME}",
         "labels": {
-          "template": "${NAME}-deployment"
+          "template": "${NAME}-deployment",          
+          "app-group": "${APP_GROUP}"
         },
         "annotations": {
           "description": "Defines how to deploy the ${NAME} server"
@@ -133,10 +135,6 @@
                     "value": "${DATABASE_SERVICE_NAME}"
                   },
                   {
-                    "name": "POSTGRESQL_DATABASE",
-                    "value": "${DATABASE_NAME}"
-                  },
-                  {
                     "name": "POSTGRESQL_USER",
                     "valueFrom": {
                       "secretKeyRef": {
@@ -210,6 +208,13 @@
       "value": "backup"
     },
     {
+      "name": "APP_GROUP",
+      "displayName": "App Group",
+      "description": "The name assigned to all of the deployments in this project.",
+      "required": true,
+      "value": "tob"
+    },
+    {
       "name": "SOURCE_IMAGE_NAME",
       "displayName": "Source Image Name",
       "description": "The name of the image to use for this resource.",
@@ -236,13 +241,6 @@
       "description": "The name of the database service.",
       "required": true,
       "value": "postgresql"
-    },
-    {
-      "name": "DATABASE_NAME",
-      "displayName": "Database Name",
-      "description": "The name of the database.",
-      "required": true,
-      "value": "MyDatabase"
     },
     {
       "name": "DATABASE_DEPLOYMENT_NAME",

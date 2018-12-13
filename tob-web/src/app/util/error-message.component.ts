@@ -11,6 +11,9 @@ export class ErrorMessageComponent {
   get formatted(): string {
     let err = this.error;
     let ret = null;
+    if(typeof err === 'string') {
+      return err;
+    }
     if(err) {
       try {
         let body = JSON.parse(err._body);
@@ -31,6 +34,10 @@ export class ErrorMessageComponent {
   }
 
   get notFound(): boolean {
-    return this.error && this.error.obj && this.error.obj.status === 404;
+    let err = this.error;
+    if(err) {
+      if(err.obj) err = err.obj;
+      return err && err.status === 404;
+    }
   }
 }

@@ -4,10 +4,10 @@ from api_v2.models.Schema import Schema
 from api_v2.models.CredentialType import CredentialType
 from api_v2.models.Topic import Topic
 from api_v2.models.Credential import Credential
+from api_v2.models.CredentialSet import CredentialSet
 from api_v2.models.Address import Address
 from api_v2.models.Claim import Claim
 from api_v2.models.Name import Name
-from api_v2.models.Category import Category
 from api_v2.models.Attribute import Attribute
 from api_v2 import utils
 
@@ -26,6 +26,16 @@ class SchemaSerializer(ModelSerializer):
     class Meta:
         model = Schema
         fields = "__all__"
+
+
+class CredentialSetSerializer(ModelSerializer):
+    class Meta:
+        model = CredentialSet
+        fields = (
+            "id", "create_timestamp", "update_timestamp",
+            "latest_credential_id", "topic_id",
+            "first_effective_date", "last_effective_date",
+        )
 
 
 class CredentialTypeSerializer(ModelSerializer):
@@ -66,12 +76,6 @@ class NameSerializer(ModelSerializer):
         fields = "__all__"
 
 
-class CategorySerializer(ModelSerializer):
-    class Meta:
-        model = Category
-        fields = "__all__"
-
-
 class AttributeSerializer(ModelSerializer):
     class Meta:
         model = Attribute
@@ -93,10 +97,6 @@ class CredentialAttributeSerializer(AttributeSerializer):
     class Meta(AttributeSerializer.Meta):
         fields = ("id", "type", "format", "value", "credential_id")
 
-class CredentialCategorySerializer(CategorySerializer):
-    class Meta(CategorySerializer.Meta):
-        fields = ("id", "type", "value", "credential_id")
-
 class CredentialNameSerializer(NameSerializer):
     class Meta(NameSerializer.Meta):
         fields = ("id", "text", "language", "credential_id")
@@ -108,41 +108,57 @@ class CredentialTopicSerializer(TopicSerializer):
             "source_id", "type",
         )
 
-
-class CredentialTopicExtSerializer(TopicSerializer):
-    addresses = CredentialAddressSerializer(source='get_active_addresses', many=True)
-    attributes = CredentialAttributeSerializer(source='get_active_attributes', many=True)
-    #categories = CredentialCategorySerializer(source='get_active_categories', many=True)
+class CredentialNamedTopicSerializer(CredentialTopicSerializer):
     names = CredentialNameSerializer(source='get_active_names', many=True)
 
-    class Meta(TopicSerializer.Meta):
-        fields = (
-            "id", "create_timestamp", "update_timestamp",
-            "source_id", "type",
-            "addresses", "attributes", "names",
-            #"categories",
-        )
+    class Meta(CredentialTopicSerializer.Meta):
+        fields = CredentialTopicSerializer.Meta.fields + ("names",)
 
-class ExpandedCredentialSerializer(CredentialSerializer):
+class CredentialTopicExtSerializer(CredentialNamedTopicSerializer):
+    addresses = CredentialAddressSerializer(source='get_active_addresses', many=True)
+    attributes = CredentialAttributeSerializer(source='get_active_attributes', many=True)
+
+    class Meta(CredentialNamedTopicSerializer.Meta):
+        fields = CredentialNamedTopicSerializer.Meta.fields + ("addresses", "attributes")
+
+
+class CredentialExtSerializer(CredentialSerializer):
     addresses = CredentialAddressSerializer(many=True)
     attributes = CredentialAttributeSerializer(many=True)
-    #categories = CredentialCategorySerializer(many=True)
     credential_type = CredentialTypeSerializer()
     names = CredentialNameSerializer(many=True)
     topic = CredentialTopicExtSerializer()
+    related_topics = CredentialNamedTopicSerializer(many=True)
 
     class Meta(CredentialSerializer.Meta):
         depth = 1
         fields = (
             "id",
+            "create_timestamp",
             "effective_date",
             "inactive",
+            "latest",
             "revoked",
+            "revoked_date",
             "wallet_id",
             "credential_type",
             "addresses",
             "attributes",
-            #"categories",
             "names",
             "topic",
+            "related_topics",
         )
+
+
+class ExpandedCredentialSetSerializer(CredentialSetSerializer):
+    credentials = CredentialExtSerializer(many=True)
+
+    class Meta(CredentialSetSerializer.Meta):
+        fields = CredentialSetSerializer.Meta.fields + ("credentials",)
+
+
+class ExpandedCredentialSerializer(CredentialExtSerializer):
+    credential_set = ExpandedCredentialSetSerializer()
+
+    class Meta(CredentialExtSerializer.Meta):
+        fields = CredentialExtSerializer.Meta.fields + ("credential_set",)

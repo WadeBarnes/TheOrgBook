@@ -34,6 +34,9 @@
   &.person::before {
     content: "\f2c2";
   }
+  &.related::before {
+    content: "\f0c1";
+  }
 }
 
 .claim-info {
@@ -99,10 +102,6 @@ div.claim-info {
       flex: auto;
     }
   }
-}
-
-.cred-info {
-  font-size: 1.5rem;
 }
 
 .attributes-outer {
