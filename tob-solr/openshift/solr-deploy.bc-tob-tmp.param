@@ -4,6 +4,7 @@
 # Template File: templates/solr-deploy.json
 #=========================================================
 NAME=solr
+APP_GROUP=tob
 IMAGE_NAMESPACE=devex-von-tools
 TAG_NAME=bc-tob-prod-tmp
 PERSISTENT_VOLUME_SIZE=8Gi

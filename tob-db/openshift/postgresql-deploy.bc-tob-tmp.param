@@ -4,6 +4,7 @@
 # Template File: templates/postgresql-deploy.json
 #=========================================================
 NAME=postgresql
+APP_GROUP=tob
 IMAGE_NAMESPACE=devex-von-tools
 SOURCE_IMAGE_NAME=postgresql
 TAG_NAME=bc-tob-prod-tmp

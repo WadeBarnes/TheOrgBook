@@ -4,6 +4,7 @@
 # Template File: templates/angular-on-nginx/angular-on-nginx-deploy.json
 #=========================================================
 NAME=angular-on-nginx
+APP_GROUP=tob
 IMAGE_NAMESPACE=devex-von-tools
 REAL_IP_FROM=172.51.0.0/16
 API_URL=https://django-devex-von-bc-tob-prod-tmp.pathfinder.gov.bc.ca/api/v2/
@@ -13,7 +14,7 @@ AdditionalRealIpFromRules=
 IpFilterRules=
 APPLICATION_DOMAIN=angular-on-nginx-devex-von-bc-tob-prod-tmp.pathfinder.gov.bc.ca
 TAG_NAME=bc-tob-prod-tmp
-HTTP_BASIC=auth_basic 'restricted';
+HTTP_BASIC=
 TOB_THEME=bcgov
 CPU_REQUEST=10m
 CPU_LIMIT=250m
