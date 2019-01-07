@@ -48,6 +48,8 @@ SECRET_KEY = os.getenv(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = parse_bool(os.getenv("DJANGO_DEBUG", "True"))
 
+DEMO_SITE = parse_bool(os.getenv("DEMO_SITE", "False"))
+
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
@@ -64,6 +66,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_generators",
     "drf_yasg",
+    "django_filters",
     "auditable",
     "api",
     "tob_api",
