@@ -44,6 +44,7 @@ APPLICATION_URL=https://angular-on-nginx-devex-von-bc-tob-prod-tmp.pathfinder.go
 EMAIL_SETTINGS_STORE_NAME=email-settings
 FEEDBACK_TARGET_EMAIL=
 SMTP_SERVER_ADDRESS=
+DEMO_SITE=False
 CPU_REQUEST=100m
 CPU_LIMIT=750m
 MEMORY_REQUEST=100Mi
