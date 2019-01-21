@@ -67,10 +67,9 @@ INSTALLED_APPS = [
     "drf_generators",
     "drf_yasg",
     "django_filters",
-    "auditable",
     "api",
-    "tob_api",
     "api_v2",
+    "tob_api",
     "corsheaders",
 ]
 
